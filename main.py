@@ -1,8 +1,9 @@
-
+import os
 import discord
 import pearls as p
 from discord.ext import commands
-from data import authKey
+
+authKey = os.environ["AUTH_KEY"]
 
 intents = discord.Intents.default()
 intents.message_content = True  # Needed to read message content
