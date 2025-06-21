@@ -14,11 +14,38 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"Logged in as {bot.user}!")
 
+
+@commands.has_role("Moderator")
+@bot.command()
+async def clearall(ctx):
+    p.clear()
+
+@bot.command()
+async def help(ctx):
+    help_text = (
+        "**🧭 Farm Farm Bot — Commands Help**\n"
+        "All commands must be used in the **#pearl-chat** channel.\n\n"
+        "**🔹 !addpearl <color> <x> <y>**\n"
+        "Logs a pearl’s color and coordinates for today (UTC).\n"
+        "_Example: `!addpearl Blue 120 65`_\n\n"
+        "**🔹 !removepearl <color> <x> <y>**\n"
+        "Removes a pearl at the specified color and coordinates from today.\n"
+        "_Example: `!removepearl Red 34 77`_\n\n"
+        "**🔹 !clearall**\n"
+        "Moderator specific command that clears all pearls for the day.\n\n"
+        "**🔹 !pearls**\n"
+        "Lists all pearls logged for today, grouped by color.\n\n"
+        "**🎨 Valid Colors:** Black, Blue, Cyan, Green, Magenta, Red, White, Yellow\n"
+        "**🕐 Reset Time:** Pearl data resets daily at 00:00 UTC.\n\n"
+        "Use these commands only in `#pearl-chat` to avoid errors. 🧂"
+    )
+    await ctx.send(help_text)
+
 @bot.command()
 async def addpearl(ctx, color: str, x: int, y: int):
     try:
         if ctx.channel.name != "pearl-chat":
-            await ctx.send("❌ This command can only be used in #pearl-chat.")
+            await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
             return
         color = color.capitalize()
         if color not in p.colors:
@@ -35,7 +62,7 @@ async def addpearl(ctx, color: str, x: int, y: int):
 @bot.command()
 async def pearls(ctx):
     if ctx.channel.name != "pearl-chat":
-        await ctx.send("❌ This command can only be used in #pearl-chat.")
+        await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
         return
     pearls = p.get_today_pearls()
 
@@ -74,7 +101,7 @@ async def pearls(ctx):
 async def removepearl(ctx, x: int, y: int):
     try:
         if ctx.channel.name != "pearl-chat":
-            await ctx.send("❌ This command can only be used in #pearl-chat.")
+            await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
             return
 
         if p.remove(x, y):

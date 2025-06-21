@@ -61,6 +61,11 @@ def remove(x: int, y: int):
 
     return False  # nothing matched
 
+def clear():
+    today = get_today()
+    data = load_data()
+    data[today] = []
+
 def is_duplicate( color: str, x: int, y:int):
     data = load_data()
     today = get_today()
