@@ -31,14 +31,14 @@ async def cmds(ctx):
         "_Example: `!addpearl Blue 120 65`_\n\n"
         "**🔹 !removepearl <x> <y>**\n"
         "Removes a pearl at the specified color and coordinates from today.\n"
-        "_Example: `!removepearl Red 34 77`_\n\n"
+        "_Example: `!removepearl 34 77`_\n\n"
         "**🔹 !clearall**\n"
         "Moderator specific command that clears all pearls for the day.\n\n"
         "**🔹 !pearls**\n"
         "Lists all pearls logged for today, grouped by color.\n\n"
         "**🎨 Valid Colors:** Black, Blue, Cyan, Green, Magenta, Red, White, Yellow\n"
         "**🕐 Reset Time:** Pearl data resets daily at 00:00 UTC.\n\n"
-        "Use these commands only in `#pearl-chat` to avoid errors. 🧂"
+        "Use these commands only in #pearl-chat to avoid errors. 🧂"
     )
     await ctx.send(help_text)
 
