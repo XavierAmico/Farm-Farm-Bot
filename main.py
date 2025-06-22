@@ -29,7 +29,7 @@ async def help(ctx):
         "**🔹 !addpearl <color> <x> <y>**\n"
         "Logs a pearl’s color and coordinates for today (UTC).\n"
         "_Example: `!addpearl Blue 120 65`_\n\n"
-        "**🔹 !removepearl <color> <x> <y>**\n"
+        "**🔹 !removepearl <x> <y>**\n"
         "Removes a pearl at the specified color and coordinates from today.\n"
         "_Example: `!removepearl Red 34 77`_\n\n"
         "**🔹 !clearall**\n"
