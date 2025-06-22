@@ -19,6 +19,7 @@ async def on_ready():
 @bot.command()
 async def clearall(ctx):
     p.clear()
+    await ctx.send("All pearls have been cleared!")
 
 @bot.command()
 async def help(ctx):
