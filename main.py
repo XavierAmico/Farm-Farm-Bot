@@ -22,7 +22,7 @@ async def clearall(ctx):
     await ctx.send("All pearls have been cleared!")
 
 @bot.command()
-async def help(ctx):
+async def cmds(ctx):
     help_text = (
         "**🧭 Farm Farm Bot — Commands Help**\n"
         "All commands must be used in the **#pearl-chat** channel.\n\n"
