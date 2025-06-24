@@ -66,6 +66,8 @@ def clear():
     data = load_data()
     data[today] = []
 
+    save_data(data)
+
 def is_duplicate( color: str, x: int, y:int):
     data = load_data()
     today = get_today()

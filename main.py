@@ -37,7 +37,7 @@ async def cmds(ctx):
         "**🔹 !pearls**\n"
         "Lists all pearls logged for today, grouped by color.\n\n"
         "**🎨 Valid Colors:** Black, Blue, Cyan, Green, Magenta, Red, White, Yellow\n"
-        "**🕐 Reset Time:** Pearl data resets daily at 00:00 UTC.\n\n"
+        "**🕐 Reset Time:** Pearl data resets daily at <t:1750723200:t> (00:00 UTC).\n\n"
         "Use these commands only in #pearl-chat to avoid errors. 🧂"
     )
     await ctx.send(help_text)
