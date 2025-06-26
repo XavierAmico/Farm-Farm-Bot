@@ -1,117 +1,143 @@
 import os
 import discord
 import pearldb as p
+import servercommands as sc
 from discord.ext import commands
 
+# Instantiates the bot using these intents, name and calls for the discord bot's key
 authKey = os.environ["AUTH_KEY"]
-
-pearl_chat = "pearl-chat"
+DATABASE_URL = os.environ["DATABASE_URL"]
 intents = discord.Intents.default()
 intents.message_content = True  # Needed to read message content
-
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# info sent to console to confirm bot is up and running
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}!")
 
-@commands.has_role("Moderator")
-@bot.command()
-async def clearall(ctx):
-    p.clear()
-    await ctx.send("All pearls have been cleared!")
+# General Commands
 
+# cmds, makes a call to the message that displays the info regarding use of the bot
 @bot.command()
 async def cmds(ctx):
-    help_text = (
-        f"**🧭 Pearl Bot — Commands Help**\n"
-        f"All commands must be used in the **#{pearl_chat}** channel.\n\n"
-        "**🔹 !addpearl <color> <x> <y>**\n"
-        "Logs a pearl’s color and coordinates for today (UTC).\n"
-        "_Example: `!addpearl Blue 120 65`_\n\n"
-        "**🔹 !removepearl <x> <y>**\n"
-        "Removes a pearl at the specified coordinates from today.\n"
-        "_Example: `!removepearl 34 77`_\n\n"
-        "**🔹 !clearall**\n"
-        "Moderator specific command that clears all pearls for the day.\n\n"
-        "**🔹 !pearls**\n"
-        "Lists all pearls logged for today, grouped by color.\n\n"
-        "**🎨 Valid Colors:** Black, Blue, Cyan, Green, Magenta, Red, White, Yellow\n"
-        "**🕐 Reset Time:** Pearl data resets daily at <t:1750723200:t> (00:00 UTC).\n\n"
-        f"Use these commands only in #{pearl_chat} to avoid errors. 🧂"
-    )
-    await ctx.send(help_text)
+    server = ctx.guild.name
+    await ctx.send(sc.cmds(server))
+
+@bot.command()
+async def modcmds(ctx):
+    server = ctx.guild.name
+    await ctx.send(sc.mod_cmds(server))
+# Pearl Commands
+
+# Add pearl, first makes checks to ensure user is in the correct channel, using a color, and is not a duplicate
+# Then makes a call to the SQL database using the color, x and y coordinates, and server name
 
 @bot.command()
 async def addpearl(ctx, color: str, x: int, y: int):
     server = ctx.guild.name
     color = color.capitalize()
 
-    if ctx.channel.name != pearl_chat:
-        await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
-        return
-
-    if color not in p.colors:
-        await ctx.send("❌ Pearl color does not exists.")
-    elif p.is_duplicate(color, x ,y,server):
-        await ctx.send("❌ Pearl already logged today.")
+    if correct_channel(ctx):
+        if color not in p.colors:
+            await ctx.send("❌ Pearl color does not exists.")
+        elif p.is_duplicate(color, x ,y, server):
+            await ctx.send("❌ Pearl already logged today.")
+        else:
+            p.add(color,x,y,server)
+            await ctx.send(f"✅ {color} pearl has been added.")
     else:
-        p.add(color,x,y,server)
-        await ctx.send(f"✅ {color} pearl has been added.")
+        await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
 
-@bot.command()
-async def pearls(ctx):
-    server = ctx.guild.name
-    if ctx.channel.name != pearl_chat:
-        await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
-        return
-
-    pearl_list = p.get_pearls(server)
-
-    if not pearl_list:
-        await ctx.send("📭 No pearls logged yet today.")
-        return
-
-    # Group pearls by color
-    from collections import defaultdict
-    grouped = defaultdict(list)
-    for pearl in pearl_list:
-        color = pearl['color'].capitalize()
-        grouped[color].append((pearl['x'], pearl['y']))
-
-    # Sort by color name
-    sorted_colors = sorted(grouped.keys())
-
-    # Emoji mapping (optional, can add more!)
-    emoji = {
-        "Red": "🔴", "Blue": "🔵", "Green": "🟢", "Yellow": "🟡",
-        "White": "⚪", "Black": "⚫", "Magenta": "🟣", "Cyan": "🔷"
-    }
-
-    lines = [f"## 📅 Pearls for {p.get_today()}:\n"]
-
-    for color in sorted_colors:
-        icon = emoji.get(color, "•")
-        lines.append(f"{icon} {color}:")
-        for x, y in grouped[color]:
-            lines.append(f" - ({x}, {y})")
-        lines.append("\n")
-
-    await ctx.send("\n".join(lines))
-
+# Remove Pearl, checks to make sure that the channel is correct, then that the pearl exist
+# It then removes the pearl from the SQL table and sends back a message
 @bot.command()
 async def removepearl(ctx, x: int, y: int):
-    try:
-        server = ctx.guild.name
-        if ctx.channel.name != pearl_chat:
-            await ctx.send("❌ This command can only be used in #pearl-chat. (Create a ticket to request access if needed.)")
-            return
+    server = ctx.guild.name
+    if correct_channel(ctx):
         if p.remove(x, y, server):
             await ctx.send(f"✅ Pearl at ({x}, {y}) has been removed.")
         else:
-            await ctx.send("⚠️ No matching pearl found to remove.")
-    except Exception as e:
-        print("Error in removepearl:", e)
-        await ctx.send("❌ Failed to remove pearl.")
+            await ctx.send("⚠️ No matching pearl to remove.")
+    else:
+        await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
+# Mod Command
+@bot.command()
+async def clearall(ctx):
+    server = ctx.guild.name
+    if any(role.name == sc.get_mod_role(server) for role in ctx.author.roles):
+        p.clear(server)
+        await ctx.send("All pearls have been cleared!")
+    else:
+        await ctx.send(f"❌ You do not have permissions to do this. ({sc.get_mod_role(server)})")
+
+# Pearls, checks the channel, makes a call to the SQL db to create a list of pearls for that server
+# The pearls are then grouped by color, sorted, and presented as groups in the message sent to the user
+@bot.command()
+async def pearls(ctx):
+    server = ctx.guild.name
+    if correct_channel(ctx):
+        pearl_list = p.get_pearls(server)
+
+        if not pearl_list:
+            await ctx.send("📭 No pearls logged yet today.")
+            return
+
+        # Group pearls by color
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for pearl in pearl_list:
+            color = pearl['color'].capitalize()
+            grouped[color].append((pearl['x'], pearl['y']))
+
+        # Sort by color name
+        sorted_colors = sorted(grouped.keys())
+
+        # Emoji mapping (optional, can add more!)
+        emoji = {
+            "Red": "🔴", "Blue": "🔵", "Green": "🟢", "Yellow": "🟡",
+            "White": "⚪", "Black": "⚫", "Magenta": "🟣", "Cyan": "🔷"
+        }
+
+        lines = [f"## 📅 Pearls for {p.get_today()}:\n"]
+
+        for color in sorted_colors:
+            icon = emoji.get(color, "•")
+            lines.append(f"{icon} {color}:")
+            for x, y in grouped[color]:
+                lines.append(f" - ({x}, {y})")
+            lines.append("\n")
+
+        await ctx.send("\n".join(lines))
+    else:
+        await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
+
+
+#Admin Command
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def modrole(ctx, role: str):
+    server = ctx.guild.name
+    sc.set_mod_role(role, server)
+    await ctx.send(f"The Moderator role has been updated to {sc.get_mod_role(server)}!")
+
+#Mod Command
+@bot.command()
+async def pearlchat(ctx, chat: str):
+    server = ctx.guild.name
+    if any(role.name == sc.get_mod_role(server) for role in ctx.author.roles):
+        sc.set_pearl_chat(chat, server)
+        await ctx.send(f"Pearl Chat has been updated to #{sc.get_pearl_chat(server)}!")
+    else:
+        await ctx.send(f"❌ You do not have permissions to do this. ({sc.get_pearl_chat(server)})")
+
+# Utility
+def correct_channel(ctx):
+    server = ctx.guild.name
+    if ctx.channel.name != sc.get_pearl_chat(server):
+        return False
+    else:
+        return True
+# I mean yeah bro it runs the bot
 
 bot.run(authKey)
