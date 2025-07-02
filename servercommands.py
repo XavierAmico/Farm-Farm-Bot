@@ -9,7 +9,7 @@ def cmds(server):
         "**🔹 !addpearl or !ap <color> <x> <y>**\n"
         "Logs a pearl’s color and coordinates for today (UTC).\n"
         "_Example: `!addpearl Blue 120 65`_\n\n"
-        "**🔹 !removepearl !rmp <x> <y>**\n"
+        "**🔹 !removepearl or !rmp <x> <y>**\n"
         "Removes a pearl at the specified coordinates from today.\n"
         "_Example: `!removepearl 34 77`_\n\n"
         "**🔹 !modcmds**\n"
