@@ -48,6 +48,9 @@ async def addpearl(ctx, color: str, x: int, y: int):
             await ctx.send(f"✅ {color} pearl has been added.")
     else:
         await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
+@bot.command()
+async def ap(ctx, color: str, x: int, y: int):
+    await addpearl(ctx,color,x,y)
 
 # Remove Pearl, checks to make sure that the channel is correct, then that the pearl exist
 # It then removes the pearl from the SQL table and sends back a message
@@ -61,6 +64,11 @@ async def removepearl(ctx, x: int, y: int):
             await ctx.send("⚠️ No matching pearl to remove.")
     else:
         await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
+
+@bot.command()
+async def rmp(ctx, x: int, y: int):
+    await removepearl(ctx,x,y)
+
 # Mod Command
 @bot.command()
 async def clearall(ctx):
@@ -112,7 +120,9 @@ async def pearls(ctx):
     else:
         await ctx.send(f"❌ This command can only be used in #{sc.get_pearl_chat(server)}. (Request Access if needed).")
 
-
+@bot.command()
+async def pl(ctx):
+    await pearls(ctx)
 #Admin Command
 @bot.command()
 @commands.has_permissions(administrator=True)
